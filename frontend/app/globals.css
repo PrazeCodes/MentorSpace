@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  background-color: #fafaf7;
+  color: #1a1916;
+}
+
+::selection {
+  background-color: #f3c8b3;
+  color: #1a1916;
+}
+
+/* Subtle paper-grain background for landing */
+.grain-bg {
+  background-image:
+    radial-gradient(ellipse 1200px 600px at 10% -10%, rgba(217,106,63,0.07), transparent 60%),
+    radial-gradient(ellipse 900px 500px at 110% 30%, rgba(63,93,74,0.06), transparent 60%),
+    linear-gradient(180deg, #fafaf7 0%, #f4f3ee 100%);
+}
+
+.dots-bg {
+  background-image: radial-gradient(rgba(26,25,22,0.08) 1px, transparent 1px);
+  background-size: 16px 16px;
+}
+
+/* Pill button base */
+.btn {
+  @apply inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-colors duration-150;
+}
+
+.btn-primary {
+  @apply btn bg-ink-900 text-ink-50 hover:bg-ink-700;
+}
+
+.btn-accent {
+  @apply btn bg-accent text-white hover:bg-[#c45a32];
+}
+
+.btn-ghost {
+  @apply btn bg-transparent text-ink-700 hover:bg-ink-100;
+}
+
+.btn-outline {
+  @apply btn border border-ink-200 bg-white text-ink-900 hover:bg-ink-100;
+}
+
+.input {
+  @apply w-full rounded-xl border border-ink-200 bg-white px-4 py-2.5 text-sm text-ink-900 placeholder:text-ink-500 focus:border-ink-900 focus:outline-none focus:ring-2 focus:ring-ink-900/10;
+}
+
+.card {
+  @apply rounded-2xl border border-ink-200 bg-white shadow-card;
+}
+
+/* Code mono badge */
+.codey {
+  font-family: var(--font-mono, 'JetBrains Mono'), ui-monospace, monospace;
+  letter-spacing: 0.02em;
+}
+
+/* Custom thin scrollbars for chat panel */
+.thin-scroll::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+.thin-scroll::-webkit-scrollbar-thumb {
+  background: rgba(26, 25, 22, 0.15);
+  border-radius: 999px;
+}
+.thin-scroll::-webkit-scrollbar-track {
+  background: transparent;
+}
