@@ -43,6 +43,15 @@ See [`backend/README.md`](backend/README.md) and [`frontend/README.md`](frontend
 - Every WebSocket frame re-validates the session participant
 - WebRTC: backend relays SDP/ICE only — never sees media bytes
 
+## TURN server — dev vs production
+
+| | Use | Where to set |
+|---|---|---|
+| Dev / local testing | Open Relay (`turn:openrelay.metered.ca:443`, `openrelayproject` / `openrelayproject`) | `frontend/.env.local` (already gitignored) |
+| Production | **Swap to your own coturn or a paid Metered.ca plan** and rotate credentials. Anything prefixed `NEXT_PUBLIC_` is baked into the client bundle and therefore public — treat the values as low-trust and rotate frequently, or move to ephemeral REST-auth credentials minted by a `/api/turn-credentials` endpoint on the backend. | Your deploy platform's encrypted secret store (Vercel, Railway, Fly, etc.) — **never commit** |
+
+Full setup instructions in [`frontend/README.md`](frontend/README.md#production-turn--checklist), including a coturn `turnserver.conf` template and the path to ephemeral REST-auth credentials.
+
 ## Repo layout
 
 ```

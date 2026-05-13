@@ -88,6 +88,54 @@ types/index.ts            ← Shared API/WS types
 - STUN: `stun:stun.l.google.com:19302`
 - For users on different networks, add a TURN entry by setting `NEXT_PUBLIC_TURN_URL`, `NEXT_PUBLIC_TURN_USERNAME`, `NEXT_PUBLIC_TURN_PASSWORD`. Use a hosted TURN provider (e.g. Open Relay / Metered).
 
+### Production TURN — checklist
+
+> **Do not ship Open Relay credentials.** Open Relay (`openrelay.metered.ca`) is free, public, and rate-limited — fine for dev, not for production traffic.
+
+Choose **one** of:
+
+**Option A — Metered.ca paid plan (fastest path)**
+1. Sign up at <https://www.metered.ca/tools/openrelay/> → pick a plan.
+2. Create a TURN credential set (a `username` + `password`).
+3. Put them in your deploy platform's secret store (Vercel/Netlify/Railway/etc.) — **not** in source control.
+4. At deploy time, set:
+   ```
+   NEXT_PUBLIC_TURN_URL=turn:<your-subdomain>.metered.live:443
+   NEXT_PUBLIC_TURN_USERNAME=<rotating-username>
+   NEXT_PUBLIC_TURN_PASSWORD=<rotating-password>
+   ```
+5. Rotate credentials on a schedule (the Metered dashboard supports static long-term and short-lived REST-auth tokens).
+
+**Option B — self-hosted coturn (cheapest, full control)**
+1. Provision a VM with a public IP (e.g. 1 vCPU / 1 GB) and open UDP/TCP 3478, 5349, and a relay port range (default 49152–65535).
+2. Install coturn:
+   ```bash
+   sudo apt-get install -y coturn
+   sudo systemctl enable coturn
+   ```
+3. Minimal `/etc/turnserver.conf`:
+   ```ini
+   listening-port=3478
+   tls-listening-port=5349
+   fingerprint
+   lt-cred-mech
+   realm=yourdomain.com
+   user=mentorspace:STRONG_RANDOM_PASSWORD
+   no-cli
+   no-loopback-peers
+   no-multicast-peers
+   cert=/etc/letsencrypt/live/turn.yourdomain.com/fullchain.pem
+   pkey=/etc/letsencrypt/live/turn.yourdomain.com/privkey.pem
+   ```
+4. (Recommended) Switch to short-lived REST-auth credentials so passwords never end up in `NEXT_PUBLIC_*` long-term: add `use-auth-secret` + `static-auth-secret=...` to `turnserver.conf`, then expose a small `/api/turn-credentials` endpoint in Spring that returns `{ urls, username, credential }` minted from the secret. Update `useWebRTC.ts` to fetch this endpoint instead of reading the `NEXT_PUBLIC_*` env vars. (Not in MVP scope — happy to wire it up on request.)
+5. Set `NEXT_PUBLIC_TURN_URL=turn:turn.yourdomain.com:5349?transport=tcp` in your platform's secret store.
+
+### Rotation & secret hygiene
+
+- `frontend/.env.local` is gitignored (`.env*.local` pattern). Never `git add -f` it.
+- Anything prefixed `NEXT_PUBLIC_` is inlined into the client bundle at build time and is therefore **public**. Treat TURN creds as low-trust shared credentials and rotate frequently, or move to ephemeral REST-auth (Option B step 4).
+- For production environments, store all values in your deploy platform's encrypted secrets, not on disk.
+
 ## Notes
 
 - The Monaco editor is imported with `dynamic(() => import('@monaco-editor/react'), { ssr: false })` to avoid SSR issues.
