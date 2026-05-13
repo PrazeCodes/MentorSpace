@@ -85,12 +85,25 @@ Build a full-stack 1-on-1 mentorship web application called "MentorSpace" using:
 - ✅ `yarn build` — 5 routes built, 0 errors
 - ✅ `yarn lint` — clean (1 minor font warning, non-blocking)
 - ✅ `npx tsc --noEmit` — clean
+- ✅ **End-to-end smoke test against running stack**:
+  - PostgreSQL 15 + Spring Boot on :8082 + Next.js dev on :3000
+  - Mentor signup → JWT issued; bad password → 401; rate limit triggers at 6th attempt → 429
+  - Mentor creates session → 6-char code (verified: `8I17FK`, `DLKTNE`, etc.); student joins → ACTIVE
+  - Student trying to create → 403; wrong join code → 404; invalid role enum → 400
+  - Chat: real-time send / receive in both directions; history persisted; visible across two browser contexts
+  - Monaco code editor: mentor types → renders with syntax highlighting; **trailing-edge debounce flushes to DB**; student joining later loads persisted code; subsequent typing syncs both ways in real time (echo skipped via senderId)
+  - Presence: "X joined the room" banner shown on the other tab
+  - End session: mentor only; status flips to `ENDED`; dashboard shows badge
+  - **WebRTC signaling relay (Node STOMP harness)**: offer + ICE candidate relayed with server-stamped `senderId`; backend never persists signal payloads (verified `/code` endpoint stays empty)
 
-## Not verified in this env
+## Bug fixed during smoke test
 
-- Live runtime (Spring Boot + PostgreSQL + Next.js) — requires a developer machine with PostgreSQL.
-  The Emergent preview environment is FastAPI + MongoDB; per the user's explicit choice (option c),
-  the code is delivered for local run.
+- `CodeSnapshotService`: original throttle-style debounce dropped the trailing keystrokes, so a late-joining student fetched an empty snapshot. Rewrote to **trailing-edge debounce + in-memory cache**:
+  - Every code frame updates a `ConcurrentHashMap<UUID,String> latest` cache.
+  - The first frame schedules a single `ScheduledFuture` `debounceMs` in the future; subsequent frames don't re-schedule but always overwrite `latest`.
+  - When the timer fires, it writes the **latest** value to the DB and removes the pending entry.
+  - `getContent()` reads cache-first, falling back to DB, so late joiners see the latest state immediately without waiting for the flush.
+- `GlobalExceptionHandler`: added handler for `HttpMessageNotReadableException` — invalid JSON / unknown enum now returns 400 instead of 500.
 
 ## Next action items (prioritized backlog)
 
