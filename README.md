@@ -2,7 +2,7 @@
 
 A 1-on-1 mentorship web application: a shared code editor, real-time chat, and 1-on-1 WebRTC video — joined by a single 6-character code.
 
-- **Backend:** Java 17 · Spring Boot 3.2 · PostgreSQL · Spring Security (JWT) · Spring WebSocket (STOMP / SockJS)
+- **Backend:** Java 21 · Spring Boot 3.2 · PostgreSQL · Spring Security (JWT) · Spring WebSocket (STOMP / SockJS)
 - **Frontend:** Next.js 14 (App Router, TypeScript) · Tailwind CSS · Zustand · `@stomp/stompjs` + `sockjs-client` · `@monaco-editor/react`
 
 ## Quick start
