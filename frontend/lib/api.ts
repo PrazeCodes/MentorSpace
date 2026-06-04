@@ -1,7 +1,7 @@
 import axios, { AxiosInstance } from 'axios';
 import { useAuthStore } from './store';
 
-const baseURL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8080';
+const baseURL = process.env.NEXT_PUBLIC_API_URL || 'https://mentorspace-backend-bo6p.onrender.com';
 
 export const api: AxiosInstance = axios.create({
   baseURL,
